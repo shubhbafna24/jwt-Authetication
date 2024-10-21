@@ -4,6 +4,7 @@ const bcrypt =require('bcryptjs');
 
 const {validationResult } =require('express-validator');
 
+const mailer = require('../helpers/mailer');
 
 const userRegister = async(req, res)=>{
     try {
@@ -42,6 +43,10 @@ const userRegister = async(req, res)=>{
         })
         const userData = await user.save();
 
+        const msg = '<p> Hii, ' + name + ', Please <a href="http://127.0.0.1:3000/mail-verification?id=' + userData._id + '">Verify</a> your mail.</p>';
+
+        mailer.sendMail(email,'Mail Verification ', msg);
+
         return res.status(200).json({
             success: true,
             msg: 'Registered Successfully !',
@@ -57,6 +62,38 @@ const userRegister = async(req, res)=>{
     }
 }
 
+const mailVerification = async(req,res)=>{
+    try {
+        if(req.query.id == undefined){
+            return res.render('404');
+        }
+
+        const userData = await User.findOne({_id: req.query.id })
+
+        if(userData){
+
+            if(userData.is_verified==1){
+                return res.render('mail-verification',{message:"Your Mail is Already Verified !!"})
+            }
+
+            await User.findByIdAndUpdate({_id: req.query.id},{
+                $set:{
+                    is_verified:1
+            }
+        });
+
+            return res.render('mail-verification', {message:'Mail has been verified Successfully '});
+        }
+        else{
+            return res.render('mail-verification', {message:'User not Found !!'});
+        }
+        
+    } catch (error) {
+        console.log(error.message);
+        return res.render('404');
+    }
+}
 module.exports={
-    userRegister
+    userRegister,
+    mailVerification
 }
