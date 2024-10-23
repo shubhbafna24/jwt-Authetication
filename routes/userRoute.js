@@ -37,10 +37,12 @@ const upload = multer({
 });
 
 const userController = require("../controllers/userController");
-const { registerValidator ,sendMailVerificationValidator } = require('../helpers/validation');
+const { registerValidator ,sendMailVerificationValidator, passwordResetValidator } = require('../helpers/validation');
 
 router.post('/register', upload.single('image'), registerValidator, userController.userRegister);
 
 router.post('/send-mail-verification',sendMailVerificationValidator, userController.sendMailVerification)
+
+router.post('/forget-password',passwordResetValidator, userController.forgetPassword);
 
 module.exports = router;
